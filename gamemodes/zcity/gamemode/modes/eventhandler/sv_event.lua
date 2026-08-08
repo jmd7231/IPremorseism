@@ -1,17 +1,32 @@
 local MODE = MODE
 
 MODE.name = "event"
-MODE.PrintName = "Event"
-MODE.LootSpawn = false
+MODE.PrintName = "Survival Event"
+MODE.LootSpawn = true
 MODE.GuiltDisabled = true
 MODE.randomSpawns = true
 
-MODE.ForBigMaps = true
-MODE.Chance = 0
+MODE.ForBigMaps = false
+MODE.Chance = 0.02
+MODE.ROUND_TIME = 480
 
 MODE.EndLogicType = 2 
 MODE.EventersList = {} 
-MODE.LootEnabled = false
+MODE.LootEnabled = true
+
+MODE.StartingWeapons = {
+    "weapon_hk_usp",
+    "weapon_glock17",
+    "weapon_makarov",
+    "weapon_revolver357"
+}
+
+MODE.StartingMelee = {
+    "weapon_leadpipe",
+    "weapon_hg_crowbar",
+    "weapon_pocketknife",
+    "weapon_hatchet"
+}
 
 local radius = nil
 local mapsize = 7500
@@ -26,7 +41,7 @@ util.AddNetworkString("event_loot_remove")
 util.AddNetworkString("event_loot_request")
 
 function MODE:CanLaunch()
-    return true
+    return player.GetCount() >= 2
 end
 
 function MODE:Intermission()
@@ -133,6 +148,19 @@ function MODE:GiveWeapons()
 end
 
 function MODE:GiveEquipment()
+    SetGlobalString("ZB_EventName", "Survival Event")
+    SetGlobalString("ZB_EventRole", "Survivor")
+    SetGlobalString("ZB_EventObjective", "Scavenge, fight, and be the last survivor alive.")
+
+    for _, ply in player.Iterator() do
+        if ply:Team() == TEAM_SPECTATOR then continue end
+
+        ply:SetSuppressPickupNotices(true)
+        ply:Give(table.Random(self.StartingWeapons))
+        ply:Give(table.Random(self.StartingMelee))
+        ply:Give("weapon_bandage_sh")
+        ply:SetSuppressPickupNotices(false)
+    end
 end
 
 function MODE:RoundThink()
